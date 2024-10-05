@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>名刺画像OCR Sample</title>
+    <style>
+        .content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            min-height: calc(100vh - 76px  ); /* headerの高さ（64px）を差し引く */
+        }
+        form {
+            text-align: center;
+        }
+        #preview {
+            max-width: 300px;
+            max-height: 300px;
+            margin-top: 10px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #deleteButton {
+            margin-top: 10px;
+            display: none;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>名刺画像OCR Sample</h1>
+    <div class="content">
+        <div class="form-container">
+            <form id="uploadForm" enctype="multipart/form-data">
+                <input type="file" id="imageInput" name="image" accept="image/*">
+                <button type="button" id="submitButton">送信</button>
+            </form>
+            <img id="preview" src="" alt="プレビュー画像">
+            <button id="deleteButton">添付ファイルを削除</button>
+        </div>
+    </div>
+
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const preview = document.getElementById('preview');
+        const deleteButton = document.getElementById('deleteButton');
+        const submitButton = document.getElementById('submitButton');
+        const uploadForm = document.getElementById('uploadForm');
+
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    deleteButton.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = '';
+                preview.style.display = 'none';
+                deleteButton.style.display = 'none';
+            }
+        });
+
+        deleteButton.addEventListener('click', function() {
+            imageInput.value = '';
+            preview.src = '';
+            preview.style.display = 'none';
+            deleteButton.style.display = 'none';
+        });
+
+        submitButton.addEventListener('click', function() {
+            if (imageInput.files.length > 0) {
+                console.log(uploadForm);
+                const formData = new FormData();
+                const fileInput = document.getElementById('imageInput');
+                formData.append('image', fileInput.files[0]);
+
+                console.log('FormDataの内容:');
+                for (let [key, value] of formData.entries()) {
+                    console.log(key, value);
+                }
+                fetch('/upload', {
+                method: 'POST',
+                body: formData,
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json(); // サーバーのレスポンスがJSON形式の場合
+                    } else {
+                        throw new Error('ファイルのアップロードに失敗しました');
+                    }
+                })
+                .then(data => {
+                    alert('ファイルが正常にアップロードされました');
+                    console.log('サーバーのレスポンス:', data);
+                })
+                .catch(error => {
+                    console.error('エラー:', error);
+                });
+            } else {
+                alert('画像を選択してください。');
+            }
+        });
+
+        // 初期状態でプレビューと削除ボタンを非表示にする
+        preview.style.display = 'none';
+        deleteButton.style.display = 'none';
+    </script>
+</body>
+</html>
