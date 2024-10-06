@@ -1,5 +1,5 @@
 {
-  "name": "openai-sample-nodejs",
+  "name": "openai-business-card-ocr",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
